@@ -36,7 +36,7 @@ def train_handler(update, context):
 
 
 def callback_train_again(update, context):
-    context.bot.edit_message_text("어느 감정을 느꼈나요?",
+    context.bot.edit_message_text("다른 감정을 느꼈나요?",
                                   chat_id=update.callback_query.message.chat_id,
                                   message_id=update.callback_query.message.message_id)
     train_data = context.chat_data
@@ -75,6 +75,8 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
     updater = Updater(token=token, use_context=True)
     dispatcher = updater.dispatcher
