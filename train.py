@@ -1,8 +1,9 @@
 import requests
+from service import get_api_key
 
 
-def store_training(text, label):
-    key = "03cc2510-9844-11ea-aa7a-c3c2b08ff20fbfa2dc82-0846-43bf-aa70-6d34390bb241"
+def store_training(text: str, label: str):
+    key = get_api_key()
     url = "https://machinelearningforkids.co.uk/api/scratch/" + key + "/train"
 
     response = requests.post(url, json={"data": text, "label": label})

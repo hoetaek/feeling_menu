@@ -6,7 +6,8 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot_helper import build_menu
 from classify import classify_feeling
-from service import recommend_menu
+from service import recommend_menu, get_bot_token
+from train import store_training
 from data import feeling_data
 
 
@@ -43,7 +44,7 @@ def callback_train_again(update, context):
 
 
 def select_feeling(train_data, update, context):
-    show_list = [InlineKeyboardButton(i, callback_data=f"감정, {i}") for i in feeling_data.values()]
+    show_list = [InlineKeyboardButton(i, callback_data=f"감정, {i}") for i in feeling_data.keys()]
     show_markup = InlineKeyboardMarkup(build_menu(show_list, 2))  # make markup
 
     if train_data:
@@ -53,34 +54,27 @@ def select_feeling(train_data, update, context):
 
 def callback_train(update, context):
     train_data = context.chat_data['train_data']
-    menu = ''.join(update.callback_query.data.split(', ')[1:])
+    feeling = ''.join(update.callback_query.data.split(', ')[1:])
 
-    store_training(train_data, get_label(menu))
-    context.bot.edit_message_text(f"{menu}을/를 선택하였습니다.",
+    store_training(train_data, feeling)
+    context.bot.edit_message_text(f"{feeling}을/를 선택하였습니다.",
                                   chat_id=update.callback_query.message.chat_id,
                                   message_id=update.callback_query.message.message_id)
 
 
-def exit_conversation(update, context):
+def callback_exit_conversation(update, context):
     context.bot.edit_message_text("감사합니다.",
                                   chat_id=update.callback_query.message.chat_id,
                                   message_id=update.callback_query.message.message_id)
 
 
 if __name__ == "__main__":
-    import json
-
-    with open("secret.json", "r") as json_file:
-        secret_data = json.load(json_file)
-    token = secret_data['token']
+    token = get_bot_token()
 
     import logging
 
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
 
     updater = Updater(token=token, use_context=True)
     dispatcher = updater.dispatcher
@@ -91,7 +85,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('train', train_handler))
     dispatcher.add_handler(CallbackQueryHandler(callback_train, pattern='^감정'))
-    dispatcher.add_handler(CallbackQueryHandler(exit_conversation, pattern='^네'))
+    dispatcher.add_handler(CallbackQueryHandler(callback_exit_conversation, pattern='^네'))
     dispatcher.add_handler(CallbackQueryHandler(callback_train_again, pattern='^아니요'))
 
     updater.start_polling()
